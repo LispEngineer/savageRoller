@@ -4,7 +4,7 @@
  * @copyright Copyright 2023 Douglas P. Fields, Jr.
  * @license Apache License, Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  * @brief   Rolls dice for the Savage Worlds game
- * @version 0.2
+ * @version 0.4
  * @date    2023-11-01 (Created 2023-10-30)
  *
  * Targets the M5 Cardputer.

@@ -19,3 +19,15 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 * v0.2: Colorized display and compacted it a little bit.
   * Added previous rolls display.
 * v0.1: First version.
+
+# References
+
+* [Arduino Configuration for M5](https://docs.m5stack.com/en/quick_start/Cardputer/arduino)
+* [M5 Cardputer Docs](https://docs.m5stack.com/en/core/Cardputer)
+* [M5 StampS3 Docs](https://docs.m5stack.com/en/core/StampS3)
+* [VS Code and Arduino](https://www.circuitstate.com/tutorials/how-to-use-vs-code-for-creating-and-uploading-arduino-sketches/)
+* [Arduino IDE Download](https://www.arduino.cc/en/software)
+* [Arduino CLI Download](https://arduino.github.io/arduino-cli/0.35/installation/)
+* [M5Stack Reddit](https://www.reddit.com/r/M5Stack/)
+* [M5 Cardputer Reddit](https://www.reddit.com/r/CardPuter/)
+
