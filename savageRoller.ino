@@ -5,7 +5,7 @@
  * @license Apache License, Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  * @brief   Rolls dice for the Savage Worlds game
  * @version 0.4
- * @date    2023-11-01 (Created 2023-10-30)
+ * @date    2024-03-09 (Created 2023-10-30)
  *
  * Targets the M5 Cardputer.
  *
@@ -21,6 +21,11 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v0.5: Allow subtracting a roll using the number key just 
+ *         before the one that adds it.
+ *       Cap mods to +/- 99.
+ *       Cap dice to 99 per die.
+ *       Change draw order to show result last.
  * v0.4: Show roll details
  * v0.3: Add a splash page with instructions
  * v0.2: Colorized display and compacted it a little bit.
@@ -32,7 +37,7 @@
 #include <vector>
 
 const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 4;
+const uint8_t MINOR_VERSION = 5;
 
 enum class Page { Splash, Roller };
 Page currentPage = Page::Splash; // What UI page are we displaying?
@@ -45,6 +50,10 @@ uint8_t numD10 = 0;
 uint8_t numD12 = 0;
 uint8_t includeWild = 0;
 int8_t plusOrMinus = 0;
+
+const int8_t maxPlus = 99;
+const int8_t minPlus = -99;
+const uint8_t maxNum = 99;
 
 int16_t fontHeight; // For advancing the display of text
 int16_t displayHeight;
@@ -137,37 +146,84 @@ void handleKeys() {
   if (M5Cardputer.Keyboard.isChange()) {
     calculateNewlyPressed();
     if (isNewlyPressed('4')) {
-      numD4++;
-      stateChange = 1;
+      if (numD4 < maxNum) {
+        numD4++;
+        stateChange = 1;
+      }
     }
     if (isNewlyPressed('6')) {
-      numD6++;
-      stateChange = 1;
+      if (numD6 < maxNum) {
+        numD6++;
+        stateChange = 1;
+      }
     }
     if (isNewlyPressed('8')) {
-      numD8++;
-      stateChange = 1;
+      if (numD8 < maxNum) {
+        numD8++;
+        stateChange = 1;
+      }
     }
     if (isNewlyPressed('0')) {
-      numD10++;
-      stateChange = 1;
+      if (numD10 < maxNum) {
+        numD10++;
+        stateChange = 1;
+      }
     }
     if (isNewlyPressed('2')) {
-      numD12++;
-      stateChange = 1;
+      if (numD12 < maxNum) {
+        numD12++;
+        stateChange = 1;
+      }
     }
+
+    // Remove dice
+    if (isNewlyPressed('1')) {
+      if (numD12 > 0) {
+        numD12--;
+        stateChange = 1;
+      }
+    }
+    if (isNewlyPressed('3')) {
+      if (numD4 > 0) {
+        numD4--;
+        stateChange = 1;
+      }
+    }
+    if (isNewlyPressed('5')) {
+      if (numD6 > 0) {
+        numD6--;
+        stateChange = 1;
+      }
+    }
+    if (isNewlyPressed('7')) {
+      if (numD8 > 0) {
+        numD8--;
+        stateChange = 1;
+      }
+    }
+    if (isNewlyPressed('9')) {
+      if (numD10 > 0) {
+        numD10--;
+        stateChange = 1;
+      }
+    }
+
     if (isNewlyPressed('w')) {
       includeWild = !includeWild;
       stateChange = 1;
     }
     // + key requires a shift, so also do =
     if (isNewlyPressed('+') || isNewlyPressed('=')) {
-      plusOrMinus++;
-      stateChange = 1;
+      if (plusOrMinus < maxPlus) {
+        plusOrMinus++;
+        stateChange = 1;
+      }
     }
     if (isNewlyPressed('-')) {
-      plusOrMinus--;
-      stateChange = 1;
+      if (plusOrMinus > minPlus) {
+        plusOrMinus--;
+        stateChange = 1;
+      }
     }
     // TODO: KEY_BACKSPACE needs to be handled specially, so for now use ESC/`/~ key
     if (isNewlyPressed('`') || isNewlyPressed('~')) {
@@ -340,7 +396,36 @@ void handleDisplay() {
     M5Cardputer.Display.drawString(" wild", 0, 1 * fontHeight);
   }
 
+  // Display previous rolls
+  // Display it before the result, so the result is on top of this, as it
+  // is the more important
+  if (prevRolls.size() > 0) {
+    int num = 0;
+    // If we're not showing the current result, show it in the old results,
+    // but otherwise don't show the current result with the old results.
+    // The current result is always the first entry.
+    int start = includeResult ? 1 : 0;
+    s = "";
+    for (const long p : prevRolls) {
+      num++;
+      if (num == start) {
+        // Skip first one
+        continue;
+      }
+      if (num > start + 1) {
+        s += ", ";
+      }
+      s += String(p);
+    }
+    M5Cardputer.Display.setTextColor(BLUE);
+    M5Cardputer.Display.setTextDatum(textdatum_t::bottom_right);
+    M5Cardputer.Display.drawString(s, displayWidth, displayHeight);
+  }
+
+
   if (includeResult) {
+    // TODO: Clear the area under the result in case it overwrites the history of
+    // rolls, which makes it hard to read the white text with blue behind it
     M5Cardputer.Display.setTextColor(WHITE);
     M5Cardputer.Display.setTextDatum(textdatum_t::bottom_left);
     M5Cardputer.Display.drawString(" Result:  " + String(rollResult), 0, displayHeight);
@@ -368,29 +453,6 @@ void handleDisplay() {
     }
   }
 
-  // Display previous rolls
-  if (prevRolls.size() > 0) {
-    int num = 0;
-    // If we're not showing the current result, show it in the old results,
-    // but otherwise don't show the current result with the old results.
-    // The current result is always the first entry.
-    int start = includeResult ? 1 : 0;
-    s = "";
-    for (const long p : prevRolls) {
-      num++;
-      if (num == start) {
-        // Skip first one
-        continue;
-      }
-      if (num > start + 1) {
-        s += ", ";
-      }
-      s += String(p);
-    }
-    M5Cardputer.Display.setTextColor(BLUE);
-    M5Cardputer.Display.setTextDatum(textdatum_t::bottom_right);
-    M5Cardputer.Display.drawString(s, displayWidth, displayHeight);
-  }
 }
 
 /* Display the splash page and instructions.
@@ -414,8 +476,8 @@ void splashHandleDisplay() {
 
   M5Cardputer.Display.setTextColor(CYAN);
   M5Cardputer.Display.setTextDatum(textdatum_t::top_center);
-  M5Cardputer.Display.drawString("24680 adds a die,   ? help", displayWidth / 2, 3 * fontHeight);
-  M5Cardputer.Display.drawString("[w]ild,     +- change mod", displayWidth / 2, 4 * fontHeight);
+  M5Cardputer.Display.drawString("24680 adds a die, odd subs", displayWidth / 2, 3 * fontHeight);
+  M5Cardputer.Display.drawString("[w]ild, ? help, +- change mod", displayWidth / 2, 4 * fontHeight);
   M5Cardputer.Display.drawString("space rolls, backtick resets", displayWidth / 2, 5 * fontHeight);
 
   M5Cardputer.Display.setTextColor(YELLOW);
