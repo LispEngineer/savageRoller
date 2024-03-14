@@ -14,6 +14,12 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 
 # CHANGELOG
 
+* v0.6: Added toggle for exploding dice (default=on)
+* v0.5: Allow subtracting a roll using the number key just
+  * before the one that adds it.
+  * Cap mods to +/- 99.
+  * Cap dice to 99 per die.
+  * Change draw order to show result last.
 * v0.4: Show roll details
 * v0.3: Add a splash page with instructions
 * v0.2: Colorized display and compacted it a little bit.
