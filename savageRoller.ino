@@ -4,14 +4,14 @@
  * @copyright Copyright 2023 Douglas P. Fields, Jr.
  * @license Apache License, Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  * @brief   Rolls dice for the Savage Worlds game
- * @version 0.4
- * @date    2024-03-09 (Created 2023-10-30)
+ * @version 0.6
+ * @date    2024-03-13 (Created 2023-10-30)
  *
  * Targets the M5 Cardputer.
  *
  * If you roll more than one die, it adds them.
  * If you use a wild, it replaces the lowest rolled die if higher.
- * Each die explodes - adds another roll if it rolls the highest number.
+ * Each die can explode - adds another roll if it rolls the highest number.
  * 
  * NOTEs:
  * 1. String (Capital String) is an Arduino String not a C++ std::string
@@ -21,7 +21,8 @@
  *    when updating the display
  *
  * CHANGELOG
- * v0.5: Allow subtracting a roll using the number key just 
+ * v0.6: Added toggle for exploding dice (default=on)
+ * v0.5: Allow subtracting a roll using the number key just
  *         before the one that adds it.
  *       Cap mods to +/- 99.
  *       Cap dice to 99 per die.
@@ -37,7 +38,7 @@
 #include <vector>
 
 const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 5;
+const uint8_t MINOR_VERSION = 6;
 
 enum class Page { Splash, Roller };
 Page currentPage = Page::Splash; // What UI page are we displaying?
@@ -49,6 +50,7 @@ uint8_t numD8 = 0;
 uint8_t numD10 = 0;
 uint8_t numD12 = 0;
 uint8_t includeWild = 0;
+uint8_t allowExplode = 1;
 int8_t plusOrMinus = 0;
 
 const int8_t maxPlus = 99;
@@ -212,6 +214,10 @@ void handleKeys() {
       includeWild = !includeWild;
       stateChange = 1;
     }
+    if (isNewlyPressed('e')) {
+      allowExplode = !allowExplode;
+      stateChange = 1;
+    }
     // + key requires a shift, so also do =
     if (isNewlyPressed('+') || isNewlyPressed('=')) {
       if (plusOrMinus < maxPlus) {
@@ -243,24 +249,31 @@ void handleKeys() {
   }
 }
 
-/* Rolls a specified die in the savage worlds way, where
- * a maximum roll is rolled again, additively.
+/* Rolls a specified die.
+ * If allowExplode, then roll in the savage worlds way,
+ * where a maximum roll is rolled again, additively.
  */
 long rollWithExplode(long die) {
   long max = die + 1;
   long retval = 0;
   long roll;
-  bool rolled = false;
 
   if (rollDetails.length() > 0) rollDetails += ", ";
 
-  do {
+  if (allowExplode) {
+    bool rolled = false;
+    do {
+      roll = random(1, max);
+      retval += roll;
+      if (rolled) rollDetails += "+";
+      rollDetails += String(roll);
+      rolled = true;
+    } while (roll == die);
+  } else {
     roll = random(1, max);
-    retval += roll;
-    if (rolled) rollDetails += "+";
+    retval = roll;
     rollDetails += String(roll);
-    rolled = true;
-  } while (roll == die);
+  }
 
   return retval;
 }
@@ -396,6 +409,11 @@ void handleDisplay() {
     M5Cardputer.Display.drawString(" wild", 0, 1 * fontHeight);
   }
 
+  s = allowExplode ? "explode=on" : "explode=off";
+  M5Cardputer.Display.setTextColor(allowExplode ? MAROON : DARKGREY);
+  M5Cardputer.Display.setTextDatum(textdatum_t::top_center);
+  M5Cardputer.Display.drawString(s, displayWidth / 2, 1 * fontHeight);
+
   // Display previous rolls
   // Display it before the result, so the result is on top of this, as it
   // is the more important
@@ -477,8 +495,8 @@ void splashHandleDisplay() {
   M5Cardputer.Display.setTextColor(CYAN);
   M5Cardputer.Display.setTextDatum(textdatum_t::top_center);
   M5Cardputer.Display.drawString("24680 adds a die, odd subs", displayWidth / 2, 3 * fontHeight);
-  M5Cardputer.Display.drawString("[w]ild, ? help, +- change mod", displayWidth / 2, 4 * fontHeight);
-  M5Cardputer.Display.drawString("space rolls, backtick resets", displayWidth / 2, 5 * fontHeight);
+  M5Cardputer.Display.drawString("[w]ild, [e]xplode, +/- mod", displayWidth / 2, 4 * fontHeight);
+  M5Cardputer.Display.drawString("space roll, esc reset, ? help", displayWidth / 2, 5 * fontHeight);
 
   M5Cardputer.Display.setTextColor(YELLOW);
   M5Cardputer.Display.setTextDatum(textdatum_t::bottom_left);
