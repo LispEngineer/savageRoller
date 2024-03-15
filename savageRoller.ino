@@ -4,8 +4,8 @@
  * @copyright Copyright 2023 Douglas P. Fields, Jr.
  * @license Apache License, Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  * @brief   Rolls dice for the Savage Worlds game
- * @version 0.6
- * @date    2024-03-13 (Created 2023-10-30)
+ * @version 0.7
+ * @date    2024-03-14 (Created 2023-10-30)
  *
  * Targets the M5 Cardputer.
  *
@@ -21,6 +21,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v0.7: Added CRITICAL FAIL message
  * v0.6: Added toggle for exploding dice (default=on)
  * v0.5: Allow subtracting a roll using the number key just
  *         before the one that adds it.
@@ -38,7 +39,7 @@
 #include <vector>
 
 const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 6;
+const uint8_t MINOR_VERSION = 7;
 
 enum class Page { Splash, Roller };
 Page currentPage = Page::Splash; // What UI page are we displaying?
@@ -225,7 +226,8 @@ void handleKeys() {
         stateChange = 1;
       }
     }
-    if (isNewlyPressed('-')) {
+    // - key requires a shift, so also do _
+    if (isNewlyPressed('-') || isNewlyPressed('_')) {
       if (plusOrMinus > minPlus) {
         plusOrMinus--;
         stateChange = 1;
@@ -444,9 +446,15 @@ void handleDisplay() {
   if (includeResult) {
     // TODO: Clear the area under the result in case it overwrites the history of
     // rolls, which makes it hard to read the white text with blue behind it
-    M5Cardputer.Display.setTextColor(WHITE);
+    if ((numD4 + numD6 + numD8 + numD10 + numD12) == 1 && includeWild && rollResult == (1 + plusOrMinus)) {
+      s = " CRITICAL FAIL ";
+      M5Cardputer.Display.setTextColor(WHITE, RED);
+    } else {
+      s = " Result:  " + String(rollResult);
+      M5Cardputer.Display.setTextColor(WHITE);
+    }
     M5Cardputer.Display.setTextDatum(textdatum_t::bottom_left);
-    M5Cardputer.Display.drawString(" Result:  " + String(rollResult), 0, displayHeight);
+    M5Cardputer.Display.drawString(s, 0, displayHeight);
 
     // Print 2 lines of details + wild line
     // We use textWidth to get the exact width and find the longest part

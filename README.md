@@ -1,6 +1,7 @@
 # Savage Worlds Dice Roller for M5 Cardputer
 
 by [Douglas P. Fields, Jr.](mailto:symbolics@lisp.engineer)
+w/ [Jared Pellegrini](https://github.com/jaredpellegrini)
 
 license [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -14,6 +15,7 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 
 # CHANGELOG
 
+* v0.7: Added CRITICAL FAIL message
 * v0.6: Added toggle for exploding dice (default=on)
 * v0.5: Allow subtracting a roll using the number key just
   * before the one that adds it.
