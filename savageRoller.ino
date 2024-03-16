@@ -240,7 +240,7 @@ void handleKeys() {
       includeResult = 0;
       stateChange = 1;
     }
-    if (isNewlyPressed(' ')) {
+    if (isNewlyPressed(' ') || M5Cardputer.Keyboard.keysState().enter) {
       calcResult = 1;
     }
     if (isNewlyPressed('/') || isNewlyPressed('?')) {
