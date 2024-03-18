@@ -2,6 +2,7 @@
 
 by [Douglas P. Fields, Jr.](mailto:symbolics@lisp.engineer)
 w/ [Jared Pellegrini](https://github.com/jaredpellegrini)
+and [Kris Zaragoza](https://github.com/kzaragoza)
 
 license [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -15,6 +16,7 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 
 # CHANGELOG
 
+* v0.8: Roll when enter/return key pressed.
 * v0.7: Added CRITICAL FAIL message
 * v0.6: Added toggle for exploding dice (default=on)
 * v0.5: Allow subtracting a roll using the number key just

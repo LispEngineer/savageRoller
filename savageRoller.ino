@@ -21,6 +21,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v0.8: Roll on pressing the return/enter key.
  * v0.7: Added CRITICAL FAIL message
  * v0.6: Added toggle for exploding dice (default=on)
  * v0.5: Allow subtracting a roll using the number key just
@@ -39,7 +40,7 @@
 #include <vector>
 
 const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 7;
+const uint8_t MINOR_VERSION = 8;
 
 enum class Page { Splash, Roller };
 Page currentPage = Page::Splash; // What UI page are we displaying?
