@@ -505,7 +505,7 @@ void splashHandleDisplay() {
   M5Cardputer.Display.setTextDatum(textdatum_t::top_center);
   M5Cardputer.Display.drawString("24680 adds a die, odd subs", displayWidth / 2, 3 * fontHeight);
   M5Cardputer.Display.drawString("[w]ild, [e]xplode, +/- mod", displayWidth / 2, 4 * fontHeight);
-  M5Cardputer.Display.drawString("space roll, esc reset, ? help", displayWidth / 2, 5 * fontHeight);
+  M5Cardputer.Display.drawString("sp/ret rolls, esc reset, ? help", displayWidth / 2, 5 * fontHeight);
 
   M5Cardputer.Display.setTextColor(YELLOW);
   M5Cardputer.Display.setTextDatum(textdatum_t::bottom_left);
