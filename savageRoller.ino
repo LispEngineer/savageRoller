@@ -21,6 +21,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v0.8: Roll on pressing the return/enter key.
  * v0.7: Added CRITICAL FAIL message
  * v0.6: Added toggle for exploding dice (default=on)
  * v0.5: Allow subtracting a roll using the number key just
@@ -39,7 +40,7 @@
 #include <vector>
 
 const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 7;
+const uint8_t MINOR_VERSION = 8;
 
 enum class Page { Splash, Roller };
 Page currentPage = Page::Splash; // What UI page are we displaying?
@@ -240,7 +241,7 @@ void handleKeys() {
       includeResult = 0;
       stateChange = 1;
     }
-    if (isNewlyPressed(' ')) {
+    if (isNewlyPressed(' ') || M5Cardputer.Keyboard.keysState().enter) {
       calcResult = 1;
     }
     if (isNewlyPressed('/') || isNewlyPressed('?')) {
@@ -504,7 +505,7 @@ void splashHandleDisplay() {
   M5Cardputer.Display.setTextDatum(textdatum_t::top_center);
   M5Cardputer.Display.drawString("24680 adds a die, odd subs", displayWidth / 2, 3 * fontHeight);
   M5Cardputer.Display.drawString("[w]ild, [e]xplode, +/- mod", displayWidth / 2, 4 * fontHeight);
-  M5Cardputer.Display.drawString("space roll, esc reset, ? help", displayWidth / 2, 5 * fontHeight);
+  M5Cardputer.Display.drawString("sp/ret rolls, esc reset, ? help", displayWidth / 2, 5 * fontHeight);
 
   M5Cardputer.Display.setTextColor(YELLOW);
   M5Cardputer.Display.setTextDatum(textdatum_t::bottom_left);
