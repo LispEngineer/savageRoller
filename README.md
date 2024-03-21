@@ -16,7 +16,7 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 * If you use a wild, it replaces the lowest rolled die if higher.
 * Each die explodes - adds another roll if it rolls the highest number.
 
-# DECK OF CARDS:
+# DECK OF CARDS
 
 * A card will only be drawn from the deck once per shuffle.
 * Toggling jokers will force a re-shuffle.
