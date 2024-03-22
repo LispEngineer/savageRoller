@@ -47,7 +47,7 @@
 
 const uint8_t MAJOR_VERSION = 0;
 const uint8_t MINOR_VERSION = 9;
-const uint8_t MAX_CARDS_TO_SHOW = 8;
+const uint8_t MAX_CARDS_TO_SHOW = 12;
 
 enum class Page { Splash, Roller, DeckofCards };
 Page currentPage = Page::Splash; // What UI page are we displaying?
@@ -89,7 +89,7 @@ String wildDetails;
 bool allowJokers = 1;
 uint8_t cardsToShow = 0;
 
-String suits[4] = {"Clubs", "Diamonds", "Hearts", "Spades"};
+String suits[4] = {"C", "D", "H", "S"};
 std::vector<String> deck;
 std::vector<String> drawn;
 
@@ -338,16 +338,16 @@ void shuffleDeck() {
   deck.clear();
   // insert 2-10, then J, Q, K, A for each suit
   for (uint8_t i = 0; i < 4; i++) {
-    for (uint8_t j = 2; j <= 10; j++) { deck.push_back(String(j) + "-" + suits[i]); }
-    deck.push_back("J-" + suits[i]);
-    deck.push_back("Q-" + suits[i]);
-    deck.push_back("K-" + suits[i]);
-    deck.push_back("A-" + suits[i]);
+    for (uint8_t j = 2; j <= 10; j++) { deck.push_back(String(j) + suits[i]); }
+    deck.push_back("J" + suits[i]);
+    deck.push_back("Q" + suits[i]);
+    deck.push_back("K" + suits[i]);
+    deck.push_back("A" + suits[i]);
   }
   // add the two jokers if allowed
   if (allowJokers) {
-    deck.push_back("Joker-RED");
-    deck.push_back("Joker-BLACK");
+    deck.push_back("Red Joker");
+    deck.push_back("Black Joker");
   }
 }
 
@@ -363,11 +363,13 @@ void displayDeck() {
 
   if (cardsToShow > 0 && cardsToShow <= drawn.size()) {
     for (uint8_t i = 1; i <= cardsToShow; i++) {
-      //split into two columns
-      if (i <= MAX_CARDS_TO_SHOW / 2) {
-        M5Cardputer.Display.drawString(displayCard(drawn.at(drawn.size() - i)), 0, (i + 1) * fontHeight);
+      //split into three columns
+      if (i <= MAX_CARDS_TO_SHOW / 3) {
+        displayCard(drawn.at(drawn.size() - i), 0, (i + 1) * fontHeight);
+      } else if (i <= MAX_CARDS_TO_SHOW / 3 * 2) {
+        displayCard(drawn.at(drawn.size() - i), displayWidth / 3, (i + 1 - (MAX_CARDS_TO_SHOW / 3)) * fontHeight);
       } else if (i <= MAX_CARDS_TO_SHOW) {
-        M5Cardputer.Display.drawString(displayCard(drawn.at(drawn.size() - i)), displayWidth / 2, (i - 3) * fontHeight);
+        displayCard(drawn.at(drawn.size() - i), displayWidth / 3 * 2, (i + 1 - (MAX_CARDS_TO_SHOW / 3 * 2)) * fontHeight);
       }
     }
   }
@@ -393,21 +395,57 @@ void drawCard() {
   }
 }
 
-String displayCard(String thisCard) {
-  if (thisCard == "Joker-RED") {
-    M5Cardputer.Display.setTextColor(WHITE, RED);
-    return " JOKER ";
-  } else if (thisCard == "Joker-BLACK") {
-    M5Cardputer.Display.setTextColor(BLACK, WHITE);
-    return " JOKER ";
-  } else if (thisCard.endsWith("Clubs") || thisCard.endsWith("Spades")) {
-    M5Cardputer.Display.setTextColor(WHITE);
-  } else if (thisCard.endsWith("Diamonds") || thisCard.endsWith("Hearts")) {
-    M5Cardputer.Display.setTextColor(RED);
+void displayCard(String thisCard, int32_t x, int32_t y) {
+  if (thisCard.endsWith("Joker")) {
+    if (thisCard.startsWith("Red")) {
+      M5Cardputer.Display.setTextColor(WHITE, RED);
+    } else {
+      M5Cardputer.Display.setTextColor(BLACK, WHITE);
+    }
+    M5Cardputer.Display.drawString("Joker", x, y);
   } else {
-    M5Cardputer.Display.setTextColor(DARKGREEN);
+    String cardValue = thisCard;
+    cardValue.remove(thisCard.length()-1, 1);
+
+    if (thisCard.endsWith("C")) {
+      M5Cardputer.Display.setTextColor(WHITE);
+      drawClub(x, y, 12, WHITE);
+    } else if (thisCard.endsWith("S")) {
+      M5Cardputer.Display.setTextColor(WHITE);
+      drawSpade(x, y, 12, WHITE);
+    } else if (thisCard.endsWith("D")) {
+      M5Cardputer.Display.setTextColor(RED);
+      drawDiamond(x, y, 12, RED);
+    } else if (thisCard.endsWith("H")) {
+      M5Cardputer.Display.setTextColor(RED);
+      drawHeart(x, y, 12, RED);
+    }
+    M5Cardputer.Display.drawString(cardValue, x + 20, y);
   }
-  return thisCard;
+}
+
+void drawDiamond(int32_t x, int32_t y, int32_t size, uint16_t color) {
+  M5Cardputer.Display.fillTriangle(x, y + (size/2), x + size, y + (size/2), x + (size/2), y, color);
+  M5Cardputer.Display.fillTriangle(x, y + (size/2), x + size, y + (size/2), x + (size/2), y + size, color);
+}
+
+void drawHeart(int32_t x, int32_t y, int32_t size, uint16_t color) {
+  M5Cardputer.Display.fillCircleHelper(x + (size/4), y + (size/4), (size/4), 0x2, 0, color);
+  M5Cardputer.Display.fillCircleHelper(x + (size/4*3), y + (size/4), (size/4), 0x2, 0, color);
+  M5Cardputer.Display.fillTriangle(x, y + (size/4), x + size, y + (size/4), x + (size/2), y + size, color);
+}
+
+void drawSpade(int32_t x, int32_t y, int32_t size, uint16_t color) {
+  M5Cardputer.Display.fillTriangle(x, y + 3*(size/4), x + size, y + 3*(size/4), x + (size/2), y, color);
+  M5Cardputer.Display.fillCircleHelper(x + (size/4), y + 3*(size/4), (size/4), 0x1, 0, color);
+  M5Cardputer.Display.fillCircleHelper(x + 3*(size/4), y + 3*(size/4), (size/4), 0x1, 0, color);
+}
+
+void drawClub(int32_t x, int32_t y, int32_t size, uint16_t color) {
+  M5Cardputer.Display.fillCircle(x + (size/2), y + (size/4), (size/6), color);
+  M5Cardputer.Display.fillCircle(x + (size/4), y + (size/2), (size/6), color);
+  M5Cardputer.Display.fillCircle(x + (size/4*3), y + (size/2), (size/6), color);
+  M5Cardputer.Display.drawLine(x + (size/2), y, x + (size/2), y + size, color);
 }
 
 /* If we have to do the roll, do it, and add the modifier,
