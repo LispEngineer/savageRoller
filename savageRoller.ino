@@ -666,6 +666,9 @@ void splashHandleKeys() {
     } else if (isNewlyPressed('c')) {
       currentPage = Page::DeckofCards;
       displayDeck();
+    } else if (isNewlyPressed('b')) {
+      currentPage = Page::Battery;
+      firstRun = 1;
     }
   }
 }
