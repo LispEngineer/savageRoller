@@ -716,6 +716,11 @@ void batteryHandleKeys() {
       currentPage = Page::Roller;
       firstRun = 1;
     }
+    if (isNewlyPressed('/') || isNewlyPressed('?')) {
+      // Show the instructions again.
+      currentPage = Page::Splash;
+      firstRun = 1;
+    }
   }
 }
 
