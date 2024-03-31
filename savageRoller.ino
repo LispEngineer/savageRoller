@@ -702,7 +702,7 @@ void batteryHandleDisplay() {
   M5Cardputer.Display.fillRect(left + width, displayHeight/2 - 5, 5, 10);
 
   // Show the text and percentage at the bottom of the screen.
-  M5Cardputer.Display.setTextColor(WHITE);
+  M5Cardputer.Display.setTextColor(LIGHTGREY);
   M5Cardputer.Display.setTextDatum(textdatum_t::bottom_center);
   M5Cardputer.Display.drawString(level_label, displayWidth/2, displayHeight);
 }
