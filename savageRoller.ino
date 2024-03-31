@@ -26,6 +26,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v1.0: Display battery charge level on pressing the b key from the roller screen.
  * v0.9: Added card deck
  * v0.8: Roll on pressing the return/enter key.
  * v0.7: Added CRITICAL FAIL message
@@ -45,11 +46,11 @@
 #include "M5Cardputer.h"
 #include <vector>
 
-const uint8_t MAJOR_VERSION = 0;
-const uint8_t MINOR_VERSION = 9;
+const uint8_t MAJOR_VERSION = 1;
+const uint8_t MINOR_VERSION = 0;
 const uint8_t MAX_CARDS_TO_SHOW = 12;
 
-enum class Page { Splash, Roller, DeckofCards };
+enum class Page { Splash, Roller, DeckofCards, Battery };
 Page currentPage = Page::Splash; // What UI page are we displaying?
 
 // User inputs
@@ -260,6 +261,11 @@ void rollerHandleKeys() {
       // Show the instructions again
       firstRun = 1;
       currentPage = Page::Splash;
+    }
+    if (isNewlyPressed('b')) {
+      // Show the battery screen.
+      firstRun = 1;
+      currentPage = Page::Battery;
     }
   }
 }
@@ -660,6 +666,63 @@ void splashHandleKeys() {
     } else if (isNewlyPressed('c')) {
       currentPage = Page::DeckofCards;
       displayDeck();
+    } else if (isNewlyPressed('b')) {
+      currentPage = Page::Battery;
+      firstRun = 1;
+    }
+  }
+}
+
+/* Display the currently estimated battery percentage on the screen. */
+void batteryHandleDisplay() {
+  if (!stateChange) {
+    return;
+  }
+
+  // Retrieve the current battery level and compute a display string for it.
+  auto level = M5Cardputer.Power.getBatteryLevel();
+  auto level_label = "Battery: " + String(level) + "%";
+
+  // Start with a blank canvas, of course.
+  M5Cardputer.Display.clear();
+
+  // Draw a partially or fully filled in battery in the middle of the screen.
+  auto left = displayWidth / 4;
+  auto top = displayHeight / 4;
+  auto width = displayWidth / 2;
+  auto height = displayHeight / 2;
+  auto fillwidth = width * level / 100;
+  const int16_t radius = 3;
+  M5Cardputer.Display.setColor(LIGHTGREY);
+
+  // Draw the general outline of the battery.
+  M5Cardputer.Display.drawRoundRect(left, top, width, height, radius);
+
+  // Draw the filled in portion indicating battery level.
+  M5Cardputer.Display.fillRoundRect(left, top, fillwidth, height, radius);
+
+  // Draw the little battery nub (the positive terminal) on the right.
+  M5Cardputer.Display.fillRect(left + width, displayHeight/2 - 5, 5, 10);
+
+  // Show the text and percentage at the bottom of the screen.
+  M5Cardputer.Display.setTextColor(LIGHTGREY);
+  M5Cardputer.Display.setTextDatum(textdatum_t::bottom_center);
+  M5Cardputer.Display.drawString(level_label, displayWidth/2, displayHeight);
+}
+
+void batteryHandleKeys() {
+  if (M5Cardputer.Keyboard.isChange()) {
+    calculateNewlyPressed();
+
+    if (isNewlyPressed('b')) {
+      // Go back to the roller screen.
+      currentPage = Page::Roller;
+      firstRun = 1;
+    }
+    if (isNewlyPressed('/') || isNewlyPressed('?')) {
+      // Show the instructions again.
+      currentPage = Page::Splash;
+      firstRun = 1;
     }
   }
 }
@@ -703,13 +766,13 @@ void loop() {
     rollerHandleKeys();
     updateState();
     rollerHandleDisplay();
+  } else if (currentPage == Page::Battery) {
+    batteryHandleKeys();
+    batteryHandleDisplay();
   } else if (currentPage == Page::DeckofCards) {
     deckHandleKeys();
   }
 }
-
-
-
 
 /* Arduino CLI Notes
 https://arduino.github.io/arduino-cli/0.21/getting-started/

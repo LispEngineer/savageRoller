@@ -22,7 +22,7 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 * Toggling jokers will force a re-shuffle.
 
 # CHANGELOG
-
+* v1.0: Display battery charge level on pressing the b key from the roller screen.
 * v0.9: Added card deck
 * v0.8: Roll when enter/return key pressed.
 * v0.7: Added CRITICAL FAIL message
