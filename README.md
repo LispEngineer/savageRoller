@@ -15,7 +15,7 @@ Targets the [M5 Cardputer](https://docs.m5stack.com/en/core/Cardputer).
 * Each die explodes - adds another roll if it rolls the highest number.
 
 # CHANGELOG
-
+* v0.9: Display battery charge level on pressing the b key from the roller screen.
 * v0.8: Roll when enter/return key pressed.
 * v0.7: Added CRITICAL FAIL message
 * v0.6: Added toggle for exploding dice (default=on)
