@@ -26,7 +26,7 @@
  *    when updating the display
  *
  * CHANGELOG
- * v1.1: Auto-update battery level every 5 seconds, added color fill
+ * v1.1: Auto-update battery level every 5000 clocks, added color fill
  * v1.0: Display battery charge level on pressing the b key from the roller screen.
  * v0.9: Added card deck
  * v0.8: Roll on pressing the return/enter key.
@@ -267,9 +267,9 @@ void rollerHandleKeys() {
     }
     if (isNewlyPressed('b')) {
       // Show the battery screen.
+      firstRun = 1;
       currentPage = Page::Battery;
       last_battery_check = 0;
-      batteryHandleDisplay();
     }
   }
 }
@@ -708,6 +708,7 @@ void batteryHandleDisplay() {
   M5Cardputer.Display.drawString(level_label, displayWidth/2, displayHeight);
 
   // Draw the general outline of the battery.
+  M5Cardputer.Display.setColor(LIGHTGREY);
   M5Cardputer.Display.drawRoundRect(left, top, width, height, radius);
 
   // Draw the little battery nub (the positive terminal) on the right.
@@ -724,7 +725,6 @@ void batteryHandleDisplay() {
     M5Cardputer.Display.setColor(RED);
   }
   M5Cardputer.Display.fillRoundRect(left+1, top+1, fillwidth, height-2, radius);
-
 }
 
 void batteryHandleKeys() {
