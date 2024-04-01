@@ -4,8 +4,8 @@
  * @copyright Copyright 2023 Douglas P. Fields, Jr.
  * @license Apache License, Version 2.0 - https://www.apache.org/licenses/LICENSE-2.0
  * @brief   Rolls dice for the Savage Worlds game
- * @version 0.9
- * @date    2024-03-21 (Created 2023-10-30)
+ * @version 1.1
+ * @date    2024-04-01 (Created 2023-10-30)
  *
  * Targets the M5 Cardputer.
  *
@@ -26,6 +26,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v1.1: Auto-update battery level every 5 seconds, added color fill
  * v1.0: Display battery charge level on pressing the b key from the roller screen.
  * v0.9: Added card deck
  * v0.8: Roll on pressing the return/enter key.
@@ -45,9 +46,10 @@
 
 #include "M5Cardputer.h"
 #include <vector>
+#include <ctime>
 
 const uint8_t MAJOR_VERSION = 1;
-const uint8_t MINOR_VERSION = 0;
+const uint8_t MINOR_VERSION = 1;
 const uint8_t MAX_CARDS_TO_SHOW = 12;
 
 enum class Page { Splash, Roller, DeckofCards, Battery };
@@ -70,6 +72,7 @@ const uint8_t maxNum = 99;
 int16_t fontHeight; // For advancing the display of text
 int16_t displayHeight;
 int16_t displayWidth;
+std::clock_t last_battery_check;
 
 uint8_t firstRun = 1; // So we display something the first time through
 uint8_t stateChange = 0; // Update the display
@@ -264,8 +267,9 @@ void rollerHandleKeys() {
     }
     if (isNewlyPressed('b')) {
       // Show the battery screen.
-      firstRun = 1;
       currentPage = Page::Battery;
+      last_battery_check = 0;
+      batteryHandleDisplay();
     }
   }
 }
@@ -668,23 +672,24 @@ void splashHandleKeys() {
       displayDeck();
     } else if (isNewlyPressed('b')) {
       currentPage = Page::Battery;
-      firstRun = 1;
+      last_battery_check = 0;
+      batteryHandleDisplay();
     }
   }
 }
 
 /* Display the currently estimated battery percentage on the screen. */
 void batteryHandleDisplay() {
-  if (!stateChange) {
+  // Only update the display if it's been more then 5000 clocks since last check
+  std::clock_t now = std::clock();
+  if (now - last_battery_check < 5000) {
     return;
   }
+  last_battery_check = now;
 
   // Retrieve the current battery level and compute a display string for it.
-  auto level = M5Cardputer.Power.getBatteryLevel();
+  int32_t level = M5Cardputer.Power.getBatteryLevel();
   auto level_label = "Battery: " + String(level) + "%";
-
-  // Start with a blank canvas, of course.
-  M5Cardputer.Display.clear();
 
   // Draw a partially or fully filled in battery in the middle of the screen.
   auto left = displayWidth / 4;
@@ -693,21 +698,33 @@ void batteryHandleDisplay() {
   auto height = displayHeight / 2;
   auto fillwidth = width * level / 100;
   const int16_t radius = 3;
-  M5Cardputer.Display.setColor(LIGHTGREY);
 
-  // Draw the general outline of the battery.
-  M5Cardputer.Display.drawRoundRect(left, top, width, height, radius);
-
-  // Draw the filled in portion indicating battery level.
-  M5Cardputer.Display.fillRoundRect(left, top, fillwidth, height, radius);
-
-  // Draw the little battery nub (the positive terminal) on the right.
-  M5Cardputer.Display.fillRect(left + width, displayHeight/2 - 5, 5, 10);
+  // Start with a blank canvas, of course.
+  M5Cardputer.Display.clear();
 
   // Show the text and percentage at the bottom of the screen.
   M5Cardputer.Display.setTextColor(LIGHTGREY);
   M5Cardputer.Display.setTextDatum(textdatum_t::bottom_center);
   M5Cardputer.Display.drawString(level_label, displayWidth/2, displayHeight);
+
+  // Draw the general outline of the battery.
+  M5Cardputer.Display.drawRoundRect(left, top, width, height, radius);
+
+  // Draw the little battery nub (the positive terminal) on the right.
+  M5Cardputer.Display.fillRect(left + width, displayHeight/2 - 5, 5, 10);
+
+  // Draw the filled in portion indicating battery level.
+  if (level >= 75) {
+    M5Cardputer.Display.setColor(GREEN);
+  } else if (level >= 50) {
+    M5Cardputer.Display.setColor(YELLOW);
+  } else if (level >= 25) {
+    M5Cardputer.Display.setColor(ORANGE);
+  } else {
+    M5Cardputer.Display.setColor(RED);
+  }
+  M5Cardputer.Display.fillRoundRect(left+1, top+1, fillwidth, height-2, radius);
+
 }
 
 void batteryHandleKeys() {
