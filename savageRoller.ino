@@ -26,6 +26,7 @@
  *    when updating the display
  *
  * CHANGELOG
+ * v1.2: Debounce keyboard input in the roller.
  * v1.1: Auto-update battery level every 5000 clocks, added color fill
  * v1.0: Display battery charge level on pressing the b key from the roller screen.
  * v0.9: Added card deck
@@ -49,7 +50,7 @@
 #include <ctime>
 
 const uint8_t MAJOR_VERSION = 1;
-const uint8_t MINOR_VERSION = 1;
+const uint8_t MINOR_VERSION = 2;
 const uint8_t MAX_CARDS_TO_SHOW = 12;
 
 enum class Page { Splash, Roller, DeckofCards, Battery };
@@ -73,6 +74,10 @@ int16_t fontHeight; // For advancing the display of text
 int16_t displayHeight;
 int16_t displayWidth;
 std::clock_t last_battery_check;
+
+// For debouncing the keyboard checks.
+std::clock_t last_keypress_check = 0;
+const int DEBOUNCE_DELAY = 50;
 
 uint8_t firstRun = 1; // So we display something the first time through
 uint8_t stateChange = 0; // Update the display
@@ -165,6 +170,14 @@ bool isNewlyPressed(char c) {
  * If any keys are newly pressed, update state appropriately.
  */
 void rollerHandleKeys() {
+  std::clock_t now = std::clock();
+  if ((now - last_keypress_check) < DEBOUNCE_DELAY) {
+    return;
+  }
+  else {
+    last_keypress_check = now;
+  }
+
   if (M5Cardputer.Keyboard.isChange()) {
     calculateNewlyPressed();
     if (isNewlyPressed('4')) {
